@@ -5,10 +5,10 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { library } from '@fortawesome/fontawesome-svg-core';
 library.add(faSpinner);
 
-function Spinner(props) {
+function Spinner() {
   return(
-    <div className={props.class}>
-      <FontAwesomeIcon icon={props.icon} size={props.size} spin/>
+    <div className="spinner-wrapper">
+      <FontAwesomeIcon icon="spinner" size="6x" spin/>
     </div>
   )
 }

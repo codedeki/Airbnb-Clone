@@ -61,7 +61,7 @@ class Home extends Component {
   render() {
     if ((this.state.cities.length === 0) || (!this.state.recVenues.venues)) {
       return(
-        <Spinner icon="spinner" size="6x" className="spinner-wrapper"/>
+        <Spinner/>
       )
     }
 
