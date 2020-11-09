@@ -7,6 +7,8 @@ import NavBar from './utils/NavBar/NavBar';
 import Home from './pages/Home/Home';
 import SingleFullVenue from './pages/SingleFullVenue/SingleFullVenue';
 import Modal from './utils/Modal/Modal';
+import CityVenues from './pages/CityVenues/CityVenues';
+import PaymentSuccess from './pages/PaymentSuccess/PaymentSuccess';
 
 class App extends Component {
   render() {
@@ -15,6 +17,8 @@ class App extends Component {
       <Route path="/" component={NavBar}/>
       <Route exact path="/" component={Home}/>
       <Route exact path="/venue/:vid" component={SingleFullVenue}/>
+      <Route exact path="/city/:cityName" component={CityVenues}/>
+      <Route exact path="/payment-success/:stripeToken" component={PaymentSuccess}/>
       <Route path="/" component={Modal}/>
     </Router>
     )

@@ -44,7 +44,7 @@ class SearchBox extends Component {
           <div className="col m12">
             <div className="form-label">Guests</div>
             <div className="input-field" id="guests">
-              <input className="browser-default" onChange={this.changeGuests} placeholder="0" value={this.state.guests} type="number"/>
+              <input className="browser-default" onChange={this.changeGuests} placeholder="1" value={this.state.guests} type="number"/>
             </div>
           </div>
 

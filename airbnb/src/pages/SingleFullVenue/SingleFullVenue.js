@@ -2,14 +2,24 @@ import React , { Component } from 'react';
 import './SingleFullVenue.css';
 import Point from './Point';
 import axios from 'axios';
+import { connect } from 'react-redux';
+import openModal from '../../actions/openModal';
+import {bindActionCreators} from 'redux';
+import Login from '../Login/Login';
+import moment from 'moment';
+import swal from 'sweetalert';
+import loadScript from '../../utilityFunctions/loadScript';
 
 class SingleFullVenue extends Component {
 
   state = {
     singleVenue: {},
-    points: []
+    points: [],
+    checkIn: "",
+    checkOut: "",
+    numberOfGuests: 1,
   }
-
+ 
   async componentDidMount() {
     const venueId = this.props.match.params.vid;
     const url = `${window.apiHost}/venue/${venueId}`;
@@ -30,12 +40,73 @@ class SingleFullVenue extends Component {
     })
   }
 
-    reserveNow = (e) => {
-      console.log("user wants to reserve")
+    changeNumberOfGuests =(e) => this.setState({numberOfGuests: e.target.value});
+    changeCheckIn =(e) => this.setState({checkIn: e.target.value});
+    changeCheckOut =(e) => this.setState({checkOut: e.target.value});
+
+    reserveNow = async (e) => {
+      const startDayMoment = moment(this.state.checkIn);
+      const endDayMoment = moment(this.state.checkOut);
+      const diffDays = endDayMoment.diff(startDayMoment, "days");
+      // console.log(diffDays);
+      if (diffDays < 1) {
+        swal({
+          title: "Check out date must be after check in date",
+          icon: "error"
+        })
+      } else if (isNaN(diffDays)) {
+        swal({
+          title: "Please make sure your dates are valid",
+          icon: "error"
+        })
+      } else {
+        const pricePerNight = this.state.singleVenue.pricePerNight;
+        const totalPrice = pricePerNight * diffDays;
+        console.log(totalPrice);
+        const scriptUrl = 'https://js.stripe.com/v3';
+        const stripePublicKey = '';
+  // Moving the below code to it's own module
+        // await new Promise((resolve, reject)=>{
+        //     const script = document.createElement('script');
+        //     script.type = 'text/javascript';
+        //     script.src = scriptUrl;
+        //     script.onload = ()=>{
+        //         console.log("The script has loaded!")
+        //         resolve();
+        //     }
+        //     document.getElementsByTagName('head')[0].appendChild(script);
+        //     console.log("The script has been added to the head!")
+        // })
+        await loadScript(scriptUrl) // we dont need a variable, we just need to wait
+        // console.log("Let's run some Stripe")
+        const stripe = window.Stripe(stripePublicKey);
+        const stripeSessionUrl = `${window.apiHost}/payment/create-session`;
+        const data = {
+            venueData: this.state.singleVenue,
+            totalPrice,
+            diffDays,
+            pricePerNight,
+            checkIn: this.state.checkIn,
+            checkOut: this.state.checkOut,
+            token: this.props.auth.token,
+            numberOfGuests: this.state.numberOfGuests,
+            currency: 'USD',
+        }
+        
+        const sessionVar = await axios.post(stripeSessionUrl,data);
+        // console.log(sessionVar.data);
+        stripe.redirectToCheckout({
+            sessionId: sessionVar.data.id,
+        }).then((result)=>{
+            console.log(result);
+            //if the network fails, this will run
+        })
+      }
     }
 
   render() {
-    console.log(this.state.singleVenue)
+    // console.log(this.state.singleVenue)
+    // console.log(this.props.auth)
     const sv = this.state.singleVenue;
     return(
       <div className="row single-venue">
@@ -62,15 +133,15 @@ class SingleFullVenue extends Component {
             <div className="rating">{sv.rating}</div>
             <div className="col s6">
               Check-In 
-              <input type="date"/>
+              <input type="date" onChange={this.changeCheckIn} value={this.state.checkIn} />
             </div>
             <div className="col s6">
               Check-Out 
-              <input type="date"/>
+              <input type="date" onChange={this.changeCheckOut} value={this.state.checkOut}/>
             </div>
 
             <div className="col s12">
-              <select className="browser-default">
+              <select className="browser-default" onChange={this.changeNumberOfGuests} value={this.state.numberOfGuests}>
                 <option value="1">1 Guest</option>
                 <option value="2">2 Guests</option>
                 <option value="3">3 Guests</option>
@@ -84,7 +155,10 @@ class SingleFullVenue extends Component {
               </select>
 
               <div className="col s12 center">
+                {this.props.auth.token ? 
                 <button onClick={this.reserveNow} className="btn red accent-2">Reserve</button>
+                : <button className="text-link" onClick={()=>{this.props.openModal('open', <Login/> )}}> You must Log in to reserve</button>
+                }
               </div>
             </div>
 
@@ -96,4 +170,17 @@ class SingleFullVenue extends Component {
   }
 }
 
-export default SingleFullVenue;
+function mapStateToProps(state) {
+  return{
+    auth:state.auth,
+  } 
+}
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators({
+    openModal
+  },dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(SingleFullVenue);
+
