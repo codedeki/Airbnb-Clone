@@ -40,7 +40,7 @@ class NavBar extends Component {
                     <li onClick={()=>this.props.logoutAction()}>Logout</li>
                   </>
               : <>
-              <li className="login-signup" onClick={()=>{this.props.openModal('open', <Signup/> )}}> Sign Up</li>
+              <li className="login-signup" onClick={()=>{this.props.openModal('open', <Signup/> )}}> Sign up</li>
               <li className="login-signup" onClick={()=>{this.props.openModal('open', <Login/> )}}> Log in</li>
               </>
               }
